@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
+import { verifyToken } from "@/lib/auth";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const token = request.headers.get("authorization")?.split(" ")[1];
 
   if (!token) {
@@ -13,9 +13,10 @@ export function middleware(request: NextRequest) {
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET as string);
+    await verifyToken(token);
     return NextResponse.next();
   } catch (error) {
+    console.error("Erro na verificação do token:", error);
     return NextResponse.json(
       { message: "Token de autenticação inválido" },
       { status: 401 }

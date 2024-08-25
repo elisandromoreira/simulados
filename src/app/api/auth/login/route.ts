@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { generateToken } from "@/lib/auth";
 
 async function authenticateUser(email: string, password: string) {
   const user = await prisma.user.findUnique({ where: { email } });
@@ -16,11 +16,7 @@ async function authenticateUser(email: string, password: string) {
     return null;
   }
 
-  const token = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_SECRET as string,
-    { expiresIn: "1h" }
-  );
+  const token = await generateToken({ userId: user.id });
 
   return {
     token,
