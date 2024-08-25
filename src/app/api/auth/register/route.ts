@@ -1,29 +1,7 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { AuthService } from "@/services/authService";
 import { Prisma } from "@prisma/client";
 
-async function registerUser(username: string, email: string, password: string) {
-  const hashedPassword = await bcrypt.hash(password, 10);
-  return prisma.user.create({
-    data: {
-      username,
-      email,
-      password: hashedPassword,
-    },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-    },
-  });
-}
-
-/**
- * API Route handler para registro de usuários.
- * Esta função é automaticamente chamada pelo Next.js quando uma requisição POST
- * é feita para /api/auth/register.
- */
 export async function POST(request: Request) {
   try {
     const { username, email, password } = await request.json();
@@ -38,7 +16,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await registerUser(username, email, password);
+    const user = await AuthService.registerUser(username, email, password);
 
     return NextResponse.json(
       { message: "Usuário criado com sucesso", user },

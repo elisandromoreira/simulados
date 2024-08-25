@@ -1,32 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import { generateToken } from "@/lib/auth";
-
-async function authenticateUser(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
-
-  if (!user) {
-    return null;
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-
-  if (!isPasswordValid) {
-    return null;
-  }
-
-  const token = await generateToken({ userId: user.id });
-
-  return {
-    token,
-    user: {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-    },
-  };
-}
+import { AuthService } from "@/services/authService";
 
 export async function POST(request: Request) {
   try {
@@ -39,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const authResult = await authenticateUser(email, password);
+    const authResult = await AuthService.authenticateUser(email, password);
 
     if (!authResult) {
       return NextResponse.json(
