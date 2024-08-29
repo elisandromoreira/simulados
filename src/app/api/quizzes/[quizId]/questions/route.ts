@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import prisma from "@/lib/prisma";
+import { QuizService } from "@/services/quizService";
 import { QuizQuestion } from "@/types/quiz";
 
 export async function POST(
@@ -26,54 +26,27 @@ export async function POST(
       );
     }
 
-    const quiz = await prisma.quiz.findUnique({
-      where: { id: params.quizId },
-      include: { author: true },
-    });
-
-    if (!quiz) {
-      return NextResponse.json(
-        { message: "Quiz não encontrado" },
-        { status: 404 }
+    try {
+      const updatedQuiz = await QuizService.addQuestionsToQuiz(
+        params.quizId,
+        payload.userId,
+        questions
       );
-    }
-
-    if (quiz.author.id !== payload.userId) {
       return NextResponse.json(
-        { message: "Você não tem permissão para editar este quiz" },
-        { status: 403 }
+        { message: "Questões adicionadas com sucesso", quiz: updatedQuiz },
+        { status: 200 }
       );
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Quiz não encontrado") {
+          return NextResponse.json({ message: error.message }, { status: 404 });
+        }
+        if (error.message === "Você não tem permissão para editar este quiz") {
+          return NextResponse.json({ message: error.message }, { status: 403 });
+        }
+      }
+      throw error;
     }
-
-    const updatedQuiz = await prisma.quiz.update({
-      where: { id: params.quizId },
-      data: {
-        questions: {
-          create: questions.map((question) => ({
-            content: question.content,
-            explanation: question.explanation,
-            options: {
-              create: question.options.map((option) => ({
-                content: option.content,
-                isCorrect: option.isCorrect,
-              })),
-            },
-          })),
-        },
-      },
-      include: {
-        questions: {
-          include: {
-            options: true,
-          },
-        },
-      },
-    });
-
-    return NextResponse.json(
-      { message: "Questões adicionadas com sucesso", quiz: updatedQuiz },
-      { status: 200 }
-    );
   } catch (error) {
     console.error("Erro ao adicionar questões:", error);
     return NextResponse.json(
