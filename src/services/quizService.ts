@@ -33,4 +33,39 @@ export class QuizService {
       },
     });
   }
+
+  static async updateQuiz(
+    quizId: string,
+    authorId: string,
+    quizData: Partial<QuizInput>
+  ) {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: { author: true },
+    });
+
+    if (!quiz) {
+      throw new Error("Quiz não encontrado");
+    }
+
+    if (quiz.author.id !== authorId) {
+      throw new Error("Você não tem permissão para editar este quiz");
+    }
+
+    return prisma.quiz.update({
+      where: { id: quizId },
+      data: {
+        title: quizData.title,
+        description: quizData.description,
+        isPublic: quizData.isPublic,
+      },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+  }
 }
