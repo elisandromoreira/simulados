@@ -55,10 +55,6 @@ Até o momento, foram implementadas as seguintes funcionalidades:
 4. Execute as migrações do banco de dados com `npx prisma migrate dev`
 5. Inicie o servidor de desenvolvimento com `npm run dev`
 
-## Contribuindo
-
-Contribuições são bem-vindas! Por favor, leia nossas diretrizes de contribuição antes de submeter pull requests.
-
 ## Licença
 
 Este projeto está licenciado sob a [Licença MIT](LICENSE).
